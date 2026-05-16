@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PRISM SYNC // PROTOTYPE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ruby:     #ff003c;
+    --amethyst: #b300ff;
+    --topaz:    #ffaa00;
+    --cyan:     #00fff0;
+    --emerald:  #00ff7f;
+    --prism:    #ffffff;
+    --neon-yellow: #ffea00;
+    --bg-deep: #050010;
+    --bg-mid: #0a0420;
+    --bg-grid: rgba(179, 0, 255, 0.08);
+  }
+
+  body {
+    background: var(--bg-deep);
+    color: #e8e8ff;
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px 20px;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* === ANIMATED BACKGROUND === */
+  .bg-grid-fixed {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -2;
+    background:
+      linear-gradient(180deg, transparent 0%, var(--bg-deep) 75%),
+      linear-gradient(0deg, var(--bg-mid) 0%, var(--bg-deep) 100%);
+    overflow: hidden;
+  }
+  .bg-grid-fixed::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image:
+      linear-gradient(var(--bg-grid) 2px, transparent 2px),
+      linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px);
+    background-size: 60px 60px;
+    transform-origin: center top;
+    transform: perspective(400px) rotateX(60deg) translateY(0);
+    animation: grid-scroll 10s linear infinite;
+  }
+  @keyframes grid-scroll {
+    from { transform: perspective(400px) rotateX(60deg) translateY(0); }
+    to   { transform: perspective(400px) rotateX(60deg) translateY(60px); }
+  }
+  .bg-stars {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 50%;
+    z-index: -1;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, white, transparent),
+      radial-gradient(1px 1px at 60% 70%, white, transparent),
+      radial-gradient(1px 1px at 80% 10%, white, transparent),
+      radial-gradient(1px 1px at 90% 60%, #d633ff, transparent),
+      radial-gradient(2px 2px at 40% 20%, #00fff0, transparent),
+      radial-gradient(1px 1px at 30% 50%, white, transparent),
+      radial-gradient(1px 1px at 50% 90%, #ff003c, transparent);
+    background-size: 100% 100%;
+    animation: twinkle 4s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  /* === SCANLINES === */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.15) 0px,
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* === TITLE === */
+  h1.broken-neon {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 42px;
+    letter-spacing: 6px;
+    margin-bottom: 6px;
+    display: flex;
+    gap: 2px;
+    line-height: 1;
+  }
+  h1.broken-neon span {
+    display: inline-block;
+    position: relative;
+  }
+  h1.broken-neon span.space {
+    width: 24px;
+  }
+  /* assign each letter a color + independent flicker timing */
+  h1.broken-neon span:nth-child(1)  { color: var(--ruby);     text-shadow: 0 0 6px var(--ruby),     0 0 18px var(--ruby);     animation: neon-flicker-a 4.2s infinite; }
+  h1.broken-neon span:nth-child(2)  { color: var(--amethyst); text-shadow: 0 0 6px var(--amethyst), 0 0 18px var(--amethyst); animation: neon-flicker-b 3.7s infinite; }
+  h1.broken-neon span:nth-child(3)  { color: var(--cyan);     text-shadow: 0 0 6px var(--cyan),     0 0 18px var(--cyan);     animation: neon-dead 5.1s infinite; }
+  h1.broken-neon span:nth-child(4)  { color: var(--emerald);  text-shadow: 0 0 6px var(--emerald),  0 0 18px var(--emerald);  animation: neon-flicker-c 4.6s infinite; }
+  h1.broken-neon span:nth-child(5)  { color: var(--topaz);    text-shadow: 0 0 6px var(--topaz),    0 0 18px var(--topaz);    animation: neon-flicker-a 3.3s infinite; }
+  /* space */
+  h1.broken-neon span:nth-child(7)  { color: var(--amethyst); text-shadow: 0 0 6px var(--amethyst), 0 0 18px var(--amethyst); animation: neon-flicker-b 4.8s infinite; }
+  h1.broken-neon span:nth-child(8)  { color: var(--topaz);    text-shadow: 0 0 6px var(--topaz),    0 0 18px var(--topaz);    animation: neon-dead 6.3s infinite; }
+  h1.broken-neon span:nth-child(9)  { color: var(--ruby);     text-shadow: 0 0 6px var(--ruby),     0 0 18px var(--ruby);     animation: neon-flicker-c 3.9s infinite; }
+  h1.broken-neon span:nth-child(10) { color: var(--cyan);     text-shadow: 0 0 6px var(--cyan),     0 0 18px var(--cyan);     animation: neon-flicker-a 4.4s infinite; }
+
+  /* Different flicker patterns so letters don't sync up */
+  @keyframes neon-flicker-a {
+    0%, 30%, 32%, 35%, 70%, 100% { opacity: 1; filter: brightness(1); }
+    31%   { opacity: 0.3; filter: brightness(0.4); }
+    33%, 34% { opacity: 1; filter: brightness(1.3); }
+    71%, 72% { opacity: 0.7; filter: brightness(0.6); }
+  }
+  @keyframes neon-flicker-b {
+    0%, 45%, 47%, 50%, 80%, 100% { opacity: 1; filter: brightness(1); }
+    46%   { opacity: 0.2; filter: brightness(0.3); }
+    48%, 49% { opacity: 1; filter: brightness(1.4); }
+    81%, 82% { opacity: 0.5; filter: brightness(0.5); }
+  }
+  @keyframes neon-flicker-c {
+    0%, 15%, 17%, 20%, 85%, 100% { opacity: 1; filter: brightness(1); }
+    16%   { opacity: 0.4; filter: brightness(0.5); }
+    18%, 19% { opacity: 1; filter: brightness(1.2); }
+    86%, 87% { opacity: 0.6; filter: brightness(0.6); }
+  }
+  /* "dead" letter - mostly off, occasionally sparks back to life */
+  @keyframes neon-dead {
+    0%, 90%, 100% { opacity: 0.25; filter: brightness(0.4); text-shadow: none; }
+    91%, 92%, 94%, 96% { opacity: 1; filter: brightness(1.3); }
+    93%, 95% { opacity: 0.3; filter: brightness(0.4); text-shadow: none; }
+  }
+  .subtitle {
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 6px;
+    margin-bottom: 28px;
+  }
+
+  /* === LAYOUT === */
+  .game-container {
+    display: flex;
+    gap: 20px;
+    max-width: 1300px;
+    width: 100%;
+    align-items: flex-start;
+  }
+  .main-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .sidebar {
+    width: 290px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* === ARENA - both player panels === */
+  .arena {
+    width: 100%;
+    max-width: 900px;
+    background: rgba(5, 0, 16, 0.5);
+    border: 2px solid var(--cyan);
+    padding: 30px;
+    box-shadow: 0 0 30px rgba(0, 255, 240, 0.3), inset 0 0 50px rgba(0, 255, 240, 0.04);
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    margin-bottom: 20px;
+  }
+  .player-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 0;
+  }
+  .player-section.crimson .player-name {
+    color: var(--ruby);
+    text-shadow: 0 0 10px var(--ruby), 0 0 25px var(--ruby);
+    animation: player-glitch-a 6.5s infinite;
+  }
+  .player-section.violet .player-name {
+    color: var(--amethyst);
+    text-shadow: 0 0 10px var(--amethyst), 0 0 25px var(--amethyst);
+    animation: player-glitch-b 7.2s infinite;
+  }
+  @keyframes player-glitch-a {
+    0%, 88%, 100% { opacity: 1; filter: brightness(1); }
+    89% { opacity: 0.4; filter: brightness(0.5); transform: translateX(-1px); }
+    90% { opacity: 1; filter: brightness(1.3); transform: translateX(1px); }
+    91% { opacity: 0.6; filter: brightness(0.7); transform: translateX(0); }
+    92% { opacity: 1; filter: brightness(1); }
+  }
+  @keyframes player-glitch-b {
+    0%, 78%, 100% { opacity: 1; filter: brightness(1); }
+    79% { opacity: 0.5; filter: brightness(0.6); transform: translateX(1px); }
+    80% { opacity: 1; filter: brightness(1.2); transform: translateX(-1px); }
+    81% { opacity: 0.7; filter: brightness(0.8); transform: translateX(0); }
+    82% { opacity: 1; filter: brightness(1); }
+  }
+  .player-section.violet { flex-direction: row-reverse; }
+
+  .player-info {
+    min-width: 130px;
+  }
+  .player-section.violet .player-info { text-align: right; }
+  .player-name {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+  }
+  .player-tag {
+    font-size: 10px;
+    color: #777;
+    letter-spacing: 3px;
+  }
+  .player-hand-name {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    min-height: 18px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .player-hand-name.show { opacity: 1; }
+
+  .shards {
+    display: flex;
+    gap: 14px;
+    flex: 1;
+    justify-content: center;
+  }
+  .player-section.violet .shards { justify-content: center; }
+
+  /* === DIVIDER === */
+  .vs-divider {
+    border-top: 1px solid rgba(0, 255, 240, 0.2);
+    border-bottom: 1px solid rgba(0, 255, 240, 0.2);
+    text-align: center;
+    padding: 6px 0;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 8px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 12px var(--neon-yellow);
+    margin: 4px 0;
+  }
+
+  /* === SHARDS === */
+  .shard {
+    width: 64px;
+    height: 76px;
+    position: relative;
+    transform-style: preserve-3d;
+    perspective: 800px;
+  }
+  .shard-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(.34, 1.56, .64, 1);
+  }
+  .shard.revealed .shard-inner {
+    transform: rotateY(540deg);
+  }
+  .shard-face {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  /* === SHARD BACK (face-down) - cyberpunk skull === */
+  .shard-back {
+    background: linear-gradient(135deg, #0a0420 0%, #1a0a3a 50%, #0a0420 100%);
+    border: 1px solid rgba(0, 255, 240, 0.5);
+    box-shadow: 0 0 12px rgba(0, 255, 240, 0.4), inset 0 0 18px rgba(0, 255, 240, 0.15);
+    clip-path: polygon(50% 0, 100% 30%, 100% 70%, 50% 100%, 0 70%, 0 30%);
+    overflow: hidden;
+  }
+  .shard-back svg.skull {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 60%;
+    height: 60%;
+    transform: translate(-50%, -50%);
+    overflow: visible;
+    filter: drop-shadow(0 0 4px var(--cyan));
+    animation: skull-glitch 5s infinite;
+  }
+  @keyframes skull-glitch {
+    0%, 88%, 100% { transform: translate(-50%, -50%); filter: drop-shadow(0 0 4px var(--cyan)); }
+    89% { transform: translate(calc(-50% + 2px), -50%); filter: drop-shadow(-1px 0 2px #ff003c) drop-shadow(1px 0 2px var(--cyan)); }
+    90% { transform: translate(calc(-50% - 2px), calc(-50% + 1px)); filter: drop-shadow(1px 0 2px var(--amethyst)) drop-shadow(-1px 0 2px var(--cyan)); }
+    91% { transform: translate(-50%, -50%); filter: drop-shadow(0 0 4px var(--cyan)); }
+  }
+  .shard-back .skull-outline {
+    stroke: var(--cyan);
+    stroke-width: 1.6;
+    fill: none;
+    stroke-linejoin: round;
+  }
+  .shard-back .skull-eye {
+    fill: var(--cyan);
+    animation: eye-blink 2.3s infinite;
+  }
+  .shard-back .skull-eye.right {
+    animation-delay: 0.4s;
+  }
+  @keyframes eye-blink {
+    0%, 100%   { opacity: 1; }
+    45%, 47%   { opacity: 0; }
+    48%, 52%   { opacity: 1; }
+    53%, 55%   { opacity: 0; }
+    56%        { opacity: 1; }
+  }
+  /* scan line - kept from before */
+  .shard-back::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, var(--cyan) 50%, transparent 100%);
+    box-shadow: 0 0 12px var(--cyan), 0 0 24px var(--cyan);
+    animation: scan-sweep 2.5s linear infinite;
+    opacity: 0.85;
+    z-index: 2;
+  }
+  @keyframes scan-sweep {
+    0%   { top: -5%; }
+    100% { top: 105%; }
+  }
+
+  /* === SHARD FRONT (revealed) === */
+  .shard-front {
+    transform: rotateY(180deg);
+    clip-path: polygon(50% 0, 100% 30%, 100% 70%, 50% 100%, 0 70%, 0 30%);
+    overflow: hidden;
+    background: #08020f;
+  }
+  .shard-front svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Each revealed color: bright outer neon glow + subtle pulse + subtle glitch */
+  .shard.color-ruby .shard-front     { box-shadow: 0 0 30px var(--ruby),     0 0 60px rgba(255, 0, 60, 0.4);    animation: front-pulse-ruby 3.5s ease-in-out infinite, front-glitch 8s infinite; }
+  .shard.color-amethyst .shard-front { box-shadow: 0 0 30px var(--amethyst), 0 0 60px rgba(179, 0, 255, 0.4);   animation: front-pulse-amethyst 3.5s ease-in-out infinite, front-glitch 7s infinite; }
+  .shard.color-topaz .shard-front    { box-shadow: 0 0 30px var(--topaz),    0 0 60px rgba(255, 170, 0, 0.4);   animation: front-pulse-topaz 3.5s ease-in-out infinite, front-glitch 9s infinite; }
+  .shard.color-cyan .shard-front     { box-shadow: 0 0 30px var(--cyan),     0 0 60px rgba(0, 255, 240, 0.4);   animation: front-pulse-cyan 3.5s ease-in-out infinite, front-glitch 6.5s infinite; }
+  .shard.color-emerald .shard-front  { box-shadow: 0 0 30px var(--emerald),  0 0 60px rgba(0, 255, 127, 0.4);   animation: front-pulse-emerald 3.5s ease-in-out infinite, front-glitch 7.5s infinite; }
+
+  /* subtle individual pulse per color - widens outer glow */
+  @keyframes front-pulse-ruby {
+    0%, 100% { box-shadow: 0 0 22px var(--ruby), 0 0 45px rgba(255, 0, 60, 0.3); }
+    50%      { box-shadow: 0 0 38px var(--ruby), 0 0 75px rgba(255, 0, 60, 0.55); }
+  }
+  @keyframes front-pulse-amethyst {
+    0%, 100% { box-shadow: 0 0 22px var(--amethyst), 0 0 45px rgba(179, 0, 255, 0.3); }
+    50%      { box-shadow: 0 0 38px var(--amethyst), 0 0 75px rgba(179, 0, 255, 0.55); }
+  }
+  @keyframes front-pulse-topaz {
+    0%, 100% { box-shadow: 0 0 22px var(--topaz), 0 0 45px rgba(255, 170, 0, 0.3); }
+    50%      { box-shadow: 0 0 38px var(--topaz), 0 0 75px rgba(255, 170, 0, 0.55); }
+  }
+  @keyframes front-pulse-cyan {
+    0%, 100% { box-shadow: 0 0 22px var(--cyan), 0 0 45px rgba(0, 255, 240, 0.3); }
+    50%      { box-shadow: 0 0 38px var(--cyan), 0 0 75px rgba(0, 255, 240, 0.55); }
+  }
+  @keyframes front-pulse-emerald {
+    0%, 100% { box-shadow: 0 0 22px var(--emerald), 0 0 45px rgba(0, 255, 127, 0.3); }
+    50%      { box-shadow: 0 0 38px var(--emerald), 0 0 75px rgba(0, 255, 127, 0.55); }
+  }
+
+  /* shared subtle glitch jitter - tiny, infrequent, just a quick 2-frame jolt */
+  @keyframes front-glitch {
+    0%, 96%, 100% { transform: rotateY(180deg) translate(0, 0); filter: none; }
+    97%  { transform: rotateY(180deg) translate(-1px, 0); filter: hue-rotate(15deg); }
+    98%  { transform: rotateY(180deg) translate(1px, 0); filter: hue-rotate(-15deg); }
+    99%  { transform: rotateY(180deg) translate(0, 0); filter: none; }
+  }
+
+  /* PRISM gets the full corruption treatment - white core glow with rainbow halo */
+  .shard.color-prism .shard-front {
+    box-shadow: 0 0 35px #fff, 0 0 55px var(--amethyst), 0 0 80px var(--ruby);
+    animation: prism-corrupt 2.5s linear infinite, prism-aberration 0.6s infinite;
+  }
+  @keyframes prism-corrupt {
+    0%   { filter: brightness(1) hue-rotate(0deg); }
+    50%  { filter: brightness(1.4) hue-rotate(180deg); }
+    100% { filter: brightness(1) hue-rotate(360deg); }
+  }
+  @keyframes prism-aberration {
+    0%, 85%, 100% { transform: rotateY(180deg) translate(0, 0); }
+    87% { transform: rotateY(180deg) translate(-2px, 1px); }
+    89% { transform: rotateY(180deg) translate(2px, -1px); }
+    91% { transform: rotateY(180deg) translate(-1px, -1px); }
+    93% { transform: rotateY(180deg) translate(0, 0); }
+  }
+
+  /* reveal pop emphasis */
+  .shard.just-revealed .shard-inner {
+    animation: shard-pop 0.6s ease-out;
+  }
+  @keyframes shard-pop {
+    0%   { transform: rotateY(540deg) scale(1); }
+    30%  { transform: rotateY(540deg) scale(1.35); }
+    60%  { transform: rotateY(540deg) scale(0.95); }
+    100% { transform: rotateY(540deg) scale(1); }
+  }
+  .shard.color-prism.just-revealed .shard-inner {
+    animation: shard-prism-pop 1.2s ease-out;
+  }
+  @keyframes shard-prism-pop {
+    0%   { transform: rotateY(540deg) scale(1) rotate(0deg); filter: brightness(1); }
+    20%  { transform: rotateY(540deg) scale(1.6) rotate(15deg); filter: brightness(2.5); }
+    40%  { transform: rotateY(540deg) scale(1.2) rotate(-10deg); filter: brightness(1.8); }
+    60%  { transform: rotateY(540deg) scale(1.3) rotate(5deg); filter: brightness(1.5); }
+    100% { transform: rotateY(540deg) scale(1) rotate(0deg); filter: brightness(1); }
+  }
+
+  /* === HUD ABOVE ARENA === */
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 12px;
+    padding: 0 6px;
+  }
+  .hud-block {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #777;
+  }
+  .hud-block .value {
+    color: var(--cyan);
+    font-weight: 900;
+    margin-left: 8px;
+    text-shadow: 0 0 6px var(--cyan);
+  }
+  .pot-display {
+    color: var(--neon-yellow) !important;
+    text-shadow: 0 0 8px var(--neon-yellow) !important;
+  }
+
+  /* === CONTROLS === */
+  .controls-area {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    min-height: 80px;
+  }
+  .controls {
+    display: flex;
+    gap: 15px;
+  }
+  button {
+    background: transparent;
+    color: var(--cyan);
+    border: 2px solid var(--cyan);
+    padding: 14px 36px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-shadow: 0 0 8px var(--cyan);
+    box-shadow: 0 0 15px rgba(0, 255, 240, 0.4), inset 0 0 15px rgba(0, 255, 240, 0.1);
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
+  button:hover:not(:disabled) {
+    background: rgba(0, 255, 240, 0.15);
+    box-shadow: 0 0 25px var(--cyan), inset 0 0 20px rgba(0, 255, 240, 0.2);
+    transform: translateY(-2px);
+  }
+  button:disabled { border-color: #333; color: #444; text-shadow: none; box-shadow: none; cursor: not-allowed; }
+  button.reset { color: var(--neon-yellow); border-color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); box-shadow: 0 0 15px rgba(255, 234, 0, 0.4), inset 0 0 15px rgba(255, 234, 0, 0.1); }
+  button.reset:hover:not(:disabled) { background: rgba(255, 234, 0, 0.15); box-shadow: 0 0 25px var(--neon-yellow), inset 0 0 20px rgba(255, 234, 0, 0.2); }
+  button.don {
+    color: var(--ruby);
+    border-color: var(--ruby);
+    text-shadow: 0 0 8px var(--ruby);
+    box-shadow: 0 0 15px rgba(255, 0, 60, 0.4), inset 0 0 15px rgba(255, 0, 60, 0.1);
+    animation: don-pulse 1.2s infinite;
+  }
+  button.don:hover:not(:disabled) {
+    background: rgba(255, 0, 60, 0.15);
+    box-shadow: 0 0 25px var(--ruby), inset 0 0 20px rgba(255, 0, 60, 0.2);
+  }
+  @keyframes don-pulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 60, 0.4), inset 0 0 15px rgba(255, 0, 60, 0.1); }
+    50% { box-shadow: 0 0 30px rgba(255, 0, 60, 0.8), inset 0 0 20px rgba(255, 0, 60, 0.3); }
+  }
+
+  /* === RESULT CARD === */
+  .result-card {
+    display: none;
+    text-align: center;
+    padding: 22px 50px;
+    background: rgba(10, 4, 32, 0.95);
+    border: 2px solid var(--neon-yellow);
+    box-shadow: 0 0 30px var(--neon-yellow), inset 0 0 30px rgba(255, 234, 0, 0.1);
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+    animation: card-pop 0.4s cubic-bezier(.34, 1.56, .64, 1);
+    min-width: 360px;
+  }
+  .result-card.show { display: block; }
+  @keyframes card-pop {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .result-card h2 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 6px;
+    margin-bottom: 8px;
+  }
+  .result-card .name-big {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 32px;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+  .result-card .hand-info {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan);
+    margin-bottom: 6px;
+  }
+  .result-card .pot-info {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-yellow);
+    margin-bottom: 18px;
+  }
+  .result-card .button-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .don-timer {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    color: var(--ruby);
+    letter-spacing: 3px;
+    margin-top: 8px;
+    text-shadow: 0 0 6px var(--ruby);
+  }
+
+  /* === SIDEBAR PANELS === */
+  .panel {
+    background: rgba(10, 4, 32, 0.8);
+    border: 1px solid rgba(0, 255, 240, 0.3);
+    padding: 14px;
+    box-shadow: 0 0 15px rgba(0, 255, 240, 0.1);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+  .panel-title {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--cyan);
+    font-size: 11px;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    text-shadow: 0 0 6px var(--cyan);
+  }
+  .panel-title::before {
+    content: '▸ ';
+    color: var(--neon-yellow);
+  }
+
+  .ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+  }
+  .ranking-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 2px solid var(--cyan);
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 2px;
+  }
+  .ranking-row .rank-name { color: #ddd; }
+  .ranking-row .rank-detail {
+    color: #999;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-family: 'Share Tech Mono', monospace;
+    margin-left: 8px;
+    font-weight: normal;
+  }
+  .ranking-row .rank-num { color: var(--neon-yellow); font-weight: 900; text-shadow: 0 0 4px var(--neon-yellow); }
+
+  .color-hierarchy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 1px;
+  }
+  .mini-shard {
+    width: 18px;
+    height: 22px;
+    clip-path: polygon(50% 0, 100% 30%, 100% 70%, 50% 100%, 0 70%, 0 30%);
+    display: inline-block;
+  }
+  .mini-shard.color-prism    { background: conic-gradient(from 0deg, #ff003c, #ffaa00, #ffea00, #00ff7f, #00fff0, #b300ff, #ff003c); box-shadow: 0 0 6px #fff; }
+  .mini-shard.color-ruby     { background: var(--ruby); box-shadow: 0 0 4px var(--ruby); }
+  .mini-shard.color-amethyst { background: var(--amethyst); box-shadow: 0 0 4px var(--amethyst); }
+  .mini-shard.color-topaz    { background: var(--topaz); box-shadow: 0 0 4px var(--topaz); }
+  .mini-shard.color-cyan     { background: var(--cyan); box-shadow: 0 0 4px var(--cyan); }
+  .mini-shard.color-emerald  { background: var(--emerald); box-shadow: 0 0 4px var(--emerald); }
+
+  .rules-text {
+    font-size: 11px;
+    line-height: 1.6;
+    color: #aaa;
+  }
+  .rules-text strong { color: var(--cyan); text-shadow: 0 0 4px var(--cyan); }
+  .rules-text .prism-text { color: #fff; text-shadow: 0 0 8px #fff, 0 0 16px var(--amethyst); font-weight: bold; }
+
+  /* === LOG === */
+  .log {
+    height: 140px;
+    overflow-y: auto;
+    font-size: 12px;
+    line-height: 1.7;
+    padding-right: 6px;
+  }
+  .log::-webkit-scrollbar { width: 4px; }
+  .log::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+  .log::-webkit-scrollbar-thumb { background: var(--cyan); box-shadow: 0 0 4px var(--cyan); }
+  .log-entry { padding: 1px 0; }
+  .log-a { color: var(--ruby); text-shadow: 0 0 4px var(--ruby); }
+  .log-b { color: var(--amethyst); text-shadow: 0 0 4px var(--amethyst); }
+  .log-system { color: var(--neon-yellow); font-family: 'Orbitron', sans-serif; letter-spacing: 1px; font-size: 11px; text-shadow: 0 0 6px var(--neon-yellow); }
+  .log-win { color: var(--neon-yellow); font-weight: 700; text-shadow: 0 0 8px var(--neon-yellow); }
+</style>
+</head>
+<body>
+
+<div class="bg-grid-fixed"></div>
+<div class="bg-stars"></div>
+
+<h1 class="broken-neon">
+  <span>P</span><span>R</span><span>I</span><span>S</span><span>M</span><span class="space">&nbsp;</span><span>S</span><span>Y</span><span>N</span><span>C</span>
+</h1>
+<div class="subtitle">// FIVE SIGNALS // ONE HAND // WINNER TAKES ALL //</div>
+
+<div class="game-container">
+  <div class="main-area">
+    <div class="hud">
+      <div class="hud-block">ROUND <span class="value" id="roundNum">1</span></div>
+      <div class="hud-block">POT <span class="value pot-display" id="potDisplay">$20</span></div>
+      <div class="hud-block">REVEAL <span class="value" id="revealCount">0 / 5</span></div>
+    </div>
+
+    <div class="arena">
+      <div class="player-section crimson">
+        <div class="player-info">
+          <div class="player-name">CRIMSON</div>
+          <div class="player-tag">// PLAYER_01 //</div>
+          <div class="player-hand-name" id="handA"></div>
+        </div>
+        <div class="shards" id="shardsA"></div>
+      </div>
+
+      <div class="vs-divider">VS</div>
+
+      <div class="player-section violet">
+        <div class="player-info">
+          <div class="player-name">VIOLET</div>
+          <div class="player-tag">// PLAYER_02 //</div>
+          <div class="player-hand-name" id="handB"></div>
+        </div>
+        <div class="shards" id="shardsB"></div>
+      </div>
+    </div>
+
+    <div class="controls-area">
+      <div class="controls" id="controls">
+        <button id="startBtn">START</button>
+        <button id="resetBtn" class="reset" disabled>RESET</button>
+      </div>
+
+      <div class="result-card" id="resultCard">
+        <h2>// WINNER //</h2>
+        <div class="name-big" id="winnerName"></div>
+        <div class="hand-info" id="handResult"></div>
+        <div class="pot-info" id="potResult"></div>
+        <div class="button-row" id="resultButtons">
+          <button class="don" id="donBtn">DOUBLE OR NOTHING</button>
+          <button id="newBetBtn">NEW BET</button>
+          <button class="reset" onclick="walkAway()">WALK</button>
+        </div>
+        <div class="don-timer" id="donTimer"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="panel">
+      <div class="panel-title">HAND RANKINGS</div>
+      <div class="ranking-list">
+        <div class="ranking-row"><span class="rank-num">1</span> <span class="rank-name">5 OF A KIND <span class="rank-detail">5×</span></span></div>
+        <div class="ranking-row"><span class="rank-num">2</span> <span class="rank-name">4 OF A KIND <span class="rank-detail">4× + 1</span></span></div>
+        <div class="ranking-row"><span class="rank-num">3</span> <span class="rank-name">FULL HOUSE <span class="rank-detail">3× + 2×</span></span></div>
+        <div class="ranking-row"><span class="rank-num">4</span> <span class="rank-name">3 OF A KIND <span class="rank-detail">3× + 1 + 1</span></span></div>
+        <div class="ranking-row"><span class="rank-num">5</span> <span class="rank-name">TWO PAIR <span class="rank-detail">2× + 2× + 1</span></span></div>
+        <div class="ranking-row"><span class="rank-num">6</span> <span class="rank-name">ONE PAIR <span class="rank-detail">2× + 1 + 1 + 1</span></span></div>
+        <div class="ranking-row"><span class="rank-num">7</span> <span class="rank-name">BUST <span class="rank-detail">all different</span></span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">COLOR HIERARCHY</div>
+      <div class="color-hierarchy">
+        <span class="mini-shard color-prism" title="GLITCHED"></span>
+        <span>&gt;</span>
+        <span class="mini-shard color-ruby" title="RUBY"></span>
+        <span>&gt;</span>
+        <span class="mini-shard color-amethyst" title="AMETHYST"></span>
+        <span>&gt;</span>
+        <span class="mini-shard color-topaz" title="TOPAZ"></span>
+        <span>&gt;</span>
+        <span class="mini-shard color-cyan" title="CYAN"></span>
+        <span>&gt;</span>
+        <span class="mini-shard color-emerald" title="EMERALD"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">RULES</div>
+      <div class="rules-text">
+        Both players reveal <strong>5 SHARDS</strong> one by one. Best hand wins the pot.<br><br>
+        <span class="prism-text">GLITCHED</span> — a system error where the skull bleeds through. Counts as any color. ~2% drop rate.<br><br>
+        Ties broken by <strong>color hierarchy</strong>. True ties split the pot.<br><br>
+        After a win you can <strong>DOUBLE OR NOTHING</strong> for a fresh hand at double the stakes.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">EVENT_LOG</div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // === CONSTANTS ===
+  const COLORS = ['ruby', 'amethyst', 'topaz', 'cyan', 'emerald'];
+  const COLOR_HIERARCHY = ['prism', 'ruby', 'amethyst', 'topaz', 'cyan', 'emerald']; // high to low
+  const PRISM_RATE = 0.02; // 2% chance per shard
+  const REVEAL_DELAY = 1500; // ms between reveals
+  const ANTE = 10; // base ante per player
+  const HAND_NAMES = {
+    7: '5 OF A KIND',
+    6: '4 OF A KIND',
+    5: 'FULL HOUSE',
+    4: '3 OF A KIND',
+    3: 'TWO PAIR',
+    2: 'ONE PAIR',
+    1: 'BUST'
+  };
+
+  // === STATE ===
+  let state = {
+    handA: [],
+    handB: [],
+    revealed: 0,
+    pot: 0,
+    round: 1,
+    running: false,
+    donAvailable: false,
+    donTimer: null,
+    donCountdown: 0,
+    lastWinner: null
+  };
+
+  // === GENERATION ===
+  function generateShard() {
+    if (Math.random() < PRISM_RATE) return 'prism';
+    return COLORS[Math.floor(Math.random() * COLORS.length)];
+  }
+
+  function generateHand() {
+    return Array.from({ length: 5 }, generateShard);
+  }
+
+  // === HAND EVALUATION ===
+  function evaluateHand(hand) {
+    // count colors, count prisms separately
+    const counts = {};
+    let prisms = 0;
+    hand.forEach(c => {
+      if (c === 'prism') prisms++;
+      else counts[c] = (counts[c] || 0) + 1;
+    });
+
+    // sort counts descending
+    const sortedColors = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const sortedCounts = sortedColors.map(c => counts[c]);
+
+    // distribute prisms greedily into the most common color (to maximize hand value)
+    if (prisms > 0 && sortedCounts.length > 0) {
+      sortedCounts[0] += prisms;
+    } else if (prisms > 0) {
+      // all prisms - treat as 5 of a kind effectively
+      sortedCounts.push(prisms);
+    }
+
+    // determine hand type
+    sortedCounts.sort((a, b) => b - a);
+    const top = sortedCounts[0] || 0;
+    const second = sortedCounts[1] || 0;
+
+    let rank, name, keyColor;
+    if (top === 5) { rank = 7; name = '5 OF A KIND'; keyColor = sortedColors[0] || 'prism'; }
+    else if (top === 4) { rank = 6; name = '4 OF A KIND'; keyColor = sortedColors[0]; }
+    else if (top === 3 && second === 2) { rank = 5; name = 'FULL HOUSE'; keyColor = sortedColors[0]; }
+    else if (top === 3) { rank = 4; name = '3 OF A KIND'; keyColor = sortedColors[0]; }
+    else if (top === 2 && second === 2) { rank = 3; name = 'TWO PAIR'; keyColor = sortedColors[0]; }
+    else if (top === 2) { rank = 2; name = 'ONE PAIR'; keyColor = sortedColors[0]; }
+    else { rank = 1; name = 'BUST'; keyColor = sortedColors[0] || hand[0]; }
+
+    return { rank, name, keyColor, prisms };
+  }
+
+  function compareHands(evalA, evalB) {
+    if (evalA.rank !== evalB.rank) return evalA.rank - evalB.rank;
+    // same rank - tiebreak by key color hierarchy (lower index = better)
+    const idxA = COLOR_HIERARCHY.indexOf(evalA.keyColor);
+    const idxB = COLOR_HIERARCHY.indexOf(evalB.keyColor);
+    return idxB - idxA; // higher hierarchy (lower index) wins, so return positive if A wins
+  }
+
+  // === SHARD BUILDING ===
+  // Each color = neon sign with classic casino/gambling icon
+  // Neon-tube style: outer thick color stroke + inner thin white core
+  // All paths designed at 32×32 viewBox
+  const SHARD_DATA = {
+    ruby: {
+      colorVar: '#ff003c',
+      // HEART - classic suit symbol, sized to fit safely in hex
+      sigil: `
+        <path d="M 16 27
+                 C 16 27 6 19 6 13
+                 C 6 9.5 9 7 12 7
+                 C 14 7 16 8.5 16 10.5
+                 C 16 8.5 18 7 20 7
+                 C 23 7 26 9.5 26 13
+                 C 26 19 16 27 16 27 Z"
+              stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+      `
+    },
+    amethyst: {
+      colorVar: '#b300ff',
+      // DIAMOND - classic suit symbol (smooth curved diamond, not angular)
+      sigil: `
+        <path d="M 16 4
+                 C 17 4 18 5 19 7
+                 C 21 10 24 13 26 15
+                 C 27 15.5 27 16.5 26 17
+                 C 24 19 21 22 19 25
+                 C 18 27 17 28 16 28
+                 C 15 28 14 27 13 25
+                 C 11 22 8 19 6 17
+                 C 5 16.5 5 15.5 6 15
+                 C 8 13 11 10 13 7
+                 C 14 5 15 4 16 4 Z"
+              stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+      `
+    },
+    topaz: {
+      colorVar: '#ffaa00',
+      // FACETED DIAMOND GEM - classic gem-cut with table top, crown facets, pointed pavilion
+      sigil: `
+        <!-- outer gem silhouette: trapezoid top + triangular bottom -->
+        <path d="M 9 9
+                 L 23 9
+                 L 28 14
+                 L 16 28
+                 L 4 14
+                 Z"
+              stroke-linejoin="round" fill="none"/>
+        <!-- inner facet lines: girdle (horizontal line under the table) -->
+        <line x1="4" y1="14" x2="28" y2="14"/>
+        <!-- pavilion facet lines: from girdle corners down to the point -->
+        <line x1="9" y1="14" x2="16" y2="28"/>
+        <line x1="23" y1="14" x2="16" y2="28"/>
+        <!-- crown facets on top: from table corners to girdle corners -->
+        <line x1="9" y1="9" x2="4" y2="14"/>
+        <line x1="23" y1="9" x2="28" y2="14"/>
+      `
+    },
+    cyan: {
+      colorVar: '#00fff0',
+      // STAR - classic 5-point lucky star
+      sigil: `
+        <path d="M 16 3
+                 L 19 12
+                 L 28.5 12
+                 L 20.75 17.5
+                 L 23.75 26.5
+                 L 16 21
+                 L 8.25 26.5
+                 L 11.25 17.5
+                 L 3.5 12
+                 L 13 12
+                 Z"
+              stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+      `
+    },
+    emerald: {
+      colorVar: '#00ff7f',
+      // DOLLAR SIGN - universal money symbol, S-curve with vertical bar
+      sigil: `
+        <!-- vertical bar through the S -->
+        <line x1="16" y1="3" x2="16" y2="29" stroke-width="2" stroke-linecap="round"/>
+        <!-- S-curve shape -->
+        <path d="M 24 9
+                 Q 24 6 20 6
+                 L 12 6
+                 Q 7 6 7 11
+                 Q 7 15 12 15
+                 L 20 15
+                 Q 25 15 25 20
+                 Q 25 25 20 25
+                 L 12 25
+                 Q 8 25 8 22"
+              stroke-linejoin="round" stroke-linecap="round" fill="none"/>
+      `
+    },
+    prism: {
+      colorVar: '#ffffff',
+      // GLITCHED SKULL - the back-of-card skull bleeding through the front (system error)
+      // counts as all colors (wild card)
+      sigil: `
+        <!-- cranium silhouette - same as the back-of-card skull -->
+        <path d="
+          M 6 14
+          C 6 6 10 3 16 3
+          C 22 3 26 6 26 14
+          L 26 18
+          L 24 21
+          L 24 24
+          L 21 27
+          L 21 29
+          L 19 29
+          L 19 26
+          L 17 26
+          L 17 29
+          L 15 29
+          L 15 26
+          L 13 26
+          L 13 29
+          L 11 29
+          L 11 27
+          L 8 24
+          L 8 21
+          L 6 18
+          Z
+        " stroke-linejoin="miter" fill="none"/>
+        <!-- LEFT eye socket -->
+        <path d="M 8 11 L 14 11 L 14.5 18 L 9 18 Z" fill="#000" stroke-width="1.4" stroke-linejoin="miter"/>
+        <!-- RIGHT eye socket -->
+        <path d="M 18 11 L 24 11 L 23 18 L 17.5 18 Z" fill="#000" stroke-width="1.4" stroke-linejoin="miter"/>
+        <!-- eye pupils - small glowing dots -->
+        <circle cx="11" cy="14.5" r="1" fill="currentColor"/>
+        <circle cx="21" cy="14.5" r="1" fill="currentColor"/>
+        <!-- NASAL cavity -->
+        <path d="M 16 19 L 14.5 22.5 L 17.5 22.5 Z" fill="#000" stroke-width="1"/>
+        <!-- teeth -->
+        <line x1="11" y1="24" x2="11" y2="26.5" stroke-width="1.2"/>
+        <line x1="14" y1="24" x2="14" y2="26.5" stroke-width="1.2"/>
+        <line x1="16" y1="24" x2="16" y2="26.5" stroke-width="1.2"/>
+        <line x1="18" y1="24" x2="18" y2="26.5" stroke-width="1.2"/>
+        <line x1="21" y1="24" x2="21" y2="26.5" stroke-width="1.2"/>
+      `
+    }
+  };
+
+  function buildShardElement(idx) {
+    const el = document.createElement('div');
+    el.className = 'shard';
+    el.innerHTML = `
+      <div class="shard-inner">
+        <div class="shard-face shard-back">
+          <svg class="skull" viewBox="0 0 32 32">
+            <!-- cranium: wide at top, narrowing to jaw -->
+            <path class="skull-outline" d="
+              M 6 14
+              C 6 6 10 3 16 3
+              C 22 3 26 6 26 14
+              L 26 18
+              L 24 21
+              L 24 24
+              L 21 27
+              L 21 29
+              L 19 29
+              L 19 26
+              L 17 26
+              L 17 29
+              L 15 29
+              L 15 26
+              L 13 26
+              L 13 29
+              L 11 29
+              L 11 27
+              L 8 24
+              L 8 21
+              L 6 18
+              Z
+            "/>
+
+            <!-- LEFT eye socket: BIG angular trapezoid, dark void -->
+            <path d="
+              M 8 11
+              L 14 11
+              L 14.5 18
+              L 9 18
+              Z
+            " fill="#000" stroke="var(--cyan)" stroke-width="1.4" stroke-linejoin="miter"/>
+
+            <!-- RIGHT eye socket -->
+            <path d="
+              M 18 11
+              L 24 11
+              L 23 18
+              L 17.5 18
+              Z
+            " fill="#000" stroke="var(--cyan)" stroke-width="1.4" stroke-linejoin="miter"/>
+
+            <!-- small glowing pupils inside the voids -->
+            <circle class="skull-eye left" cx="11" cy="14.5" r="1"/>
+            <circle class="skull-eye right" cx="21" cy="14.5" r="1"/>
+
+            <!-- NASAL cavity: hollow triangle pointing down -->
+            <path d="
+              M 16 19
+              L 14.5 22.5
+              L 17.5 22.5
+              Z
+            " fill="#000" stroke="var(--cyan)" stroke-width="1"/>
+
+            <!-- TEETH: wide grinning row, separated by gaps -->
+            <line class="skull-outline" x1="11" y1="24" x2="11" y2="26.5" stroke-width="1.2"/>
+            <line class="skull-outline" x1="14" y1="24" x2="14" y2="26.5" stroke-width="1.2"/>
+            <line class="skull-outline" x1="16" y1="24" x2="16" y2="26.5" stroke-width="1.2"/>
+            <line class="skull-outline" x1="18" y1="24" x2="18" y2="26.5" stroke-width="1.2"/>
+            <line class="skull-outline" x1="21" y1="24" x2="21" y2="26.5" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="shard-face shard-front"></div>
+      </div>
+    `;
+    return el;
+  }
+
+  function injectShardArt(shardEl, color) {
+    const front = shardEl.querySelector('.shard-front');
+    const data = SHARD_DATA[color];
+    const uid = 'sg' + Math.random().toString(36).slice(2, 7);
+
+    // Hexagon trace path - traced inside the clip-path so outline isn't cut off
+    const hexPath = "M 16 1.5 L 30 9.8 L 30 22.2 L 16 30.5 L 2 22.2 L 2 9.8 Z";
+
+    // Build neon-tube sigil rendering: outer thick blurred tube + sharp inner core
+    // The trick: same sigil rendered twice — first with thick stroke + blur (tube glow),
+    // then with thin bright stroke on top (white-hot core)
+    const svg = `
+      <svg viewBox="0 0 32 32" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <filter id="${uid}-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="0.6" result="b1"/>
+            <feGaussianBlur stdDeviation="1.6" in="SourceGraphic" result="b2"/>
+            <feMerge>
+              <feMergeNode in="b2"/>
+              <feMergeNode in="b1"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <radialGradient id="${uid}-inner" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="${data.colorVar}" stop-opacity="0.10"/>
+            <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- dark interior -->
+        <path d="${hexPath}" fill="#08020f"/>
+        <path d="${hexPath}" fill="url(#${uid}-inner)"/>
+
+        <!-- HEX OUTLINE: outer tube glow -->
+        <g filter="url(#${uid}-glow)" stroke="${data.colorVar}" fill="none">
+          <path d="${hexPath}" stroke-width="1.8" stroke-linejoin="miter"/>
+        </g>
+        <!-- HEX OUTLINE: bright white-hot core -->
+        <path d="${hexPath}" fill="none" stroke="#ffffff" stroke-width="0.6" stroke-linejoin="miter" opacity="0.9"/>
+
+        <!-- SIGIL: outer tube glow layer -->
+        <g filter="url(#${uid}-glow)" stroke="${data.colorVar}" stroke-width="1.8" fill="none" color="${data.colorVar}">
+          ${data.sigil}
+        </g>
+        <!-- SIGIL: bright white core layer (thinner stroke on top) -->
+        <g stroke="#ffffff" stroke-width="0.6" fill="none" color="#ffffff" opacity="0.95">
+          ${data.sigil}
+        </g>
+      </svg>
+    `;
+    front.innerHTML = svg;
+  }
+
+  function renderHands() {
+    const shardsA = document.getElementById('shardsA');
+    const shardsB = document.getElementById('shardsB');
+    shardsA.innerHTML = '';
+    shardsB.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      const a = buildShardElement(i);
+      a.dataset.idx = i;
+      a.dataset.player = 'a';
+      shardsA.appendChild(a);
+      const b = buildShardElement(i);
+      b.dataset.idx = i;
+      b.dataset.player = 'b';
+      shardsB.appendChild(b);
+    }
+  }
+
+  function revealShard(player, idx) {
+    const container = document.getElementById('shards' + player.toUpperCase());
+    const shard = container.children[idx];
+    const color = (player === 'a' ? state.handA : state.handB)[idx];
+    injectShardArt(shard, color);
+    shard.classList.add('color-' + color, 'revealing', 'revealed');
+    setTimeout(() => {
+      shard.classList.remove('revealing');
+      shard.classList.add('just-revealed');
+      setTimeout(() => shard.classList.remove('just-revealed'), 1200);
+    }, 600);
+  }
+
+  function updatePotDisplay() {
+    document.getElementById('potDisplay').textContent = '$' + state.pot;
+    document.getElementById('roundNum').textContent = state.round;
+  }
+
+  function updateRevealCount() {
+    document.getElementById('revealCount').textContent = state.revealed + ' / 5';
+  }
+
+  // === GAME FLOW ===
+  function startRound() {
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('resetBtn').disabled = true;
+    document.getElementById('handA').classList.remove('show');
+    document.getElementById('handB').classList.remove('show');
+    document.getElementById('handA').textContent = '';
+    document.getElementById('handB').textContent = '';
+
+    if (state.round === 1) {
+      state.pot = ANTE * 2;
+    }
+    updatePotDisplay();
+
+    state.handA = generateHand();
+    state.handB = generateHand();
+    state.revealed = 0;
+    state.running = true;
+    renderHands();
+    updateRevealCount();
+
+    addLog(`>> ROUND ${state.round} // POT $${state.pot} <<`, 'system');
+
+    // start reveal sequence
+    revealNext();
+  }
+
+  function revealNext() {
+    if (!state.running) return;
+    if (state.revealed >= 5) {
+      finishRound();
+      return;
+    }
+    // reveal both players' shard at index simultaneously
+    const idx = state.revealed;
+    revealShard('a', idx);
+    setTimeout(() => revealShard('b', idx), 400); // slight stagger between A and B
+    state.revealed++;
+    updateRevealCount();
+
+    setTimeout(revealNext, REVEAL_DELAY);
+  }
+
+  function finishRound() {
+    state.running = false;
+    const evalA = evaluateHand(state.handA);
+    const evalB = evaluateHand(state.handB);
+
+    // show hand names
+    document.getElementById('handA').textContent = evalA.name;
+    document.getElementById('handB').textContent = evalB.name;
+    document.getElementById('handA').classList.add('show');
+    document.getElementById('handB').classList.add('show');
+
+    addLog(`CRIMSON: ${evalA.name}${evalA.prisms ? ` (${evalA.prisms}× GLITCHED)` : ''}`, 'a');
+    addLog(`VIOLET: ${evalB.name}${evalB.prisms ? ` (${evalB.prisms}× GLITCHED)` : ''}`, 'b');
+
+    const cmp = compareHands(evalA, evalB);
+    let winnerName, winnerColor, winnerShadow, handDesc;
+    if (cmp > 0) {
+      winnerName = 'CRIMSON';
+      winnerColor = 'var(--ruby)';
+      winnerShadow = '0 0 15px var(--ruby), 0 0 30px var(--ruby)';
+      handDesc = evalA.name + ' (' + evalA.keyColor.toUpperCase() + ')';
+      state.lastWinner = 'a';
+    } else if (cmp < 0) {
+      winnerName = 'VIOLET';
+      winnerColor = 'var(--amethyst)';
+      winnerShadow = '0 0 15px var(--amethyst), 0 0 30px var(--amethyst)';
+      handDesc = evalB.name + ' (' + evalB.keyColor.toUpperCase() + ')';
+      state.lastWinner = 'b';
+    } else {
+      winnerName = 'TIE';
+      winnerColor = 'var(--neon-yellow)';
+      winnerShadow = '0 0 15px var(--neon-yellow), 0 0 30px var(--neon-yellow)';
+      handDesc = 'POT SPLIT';
+      state.lastWinner = null;
+    }
+
+    addLog(`>> WINNER // ${winnerName} <<`, 'win');
+
+    const wName = document.getElementById('winnerName');
+    wName.textContent = winnerName;
+    wName.style.color = winnerColor;
+    wName.style.textShadow = winnerShadow;
+    document.getElementById('handResult').textContent = handDesc;
+    document.getElementById('potResult').textContent = state.lastWinner ? `WIN $${state.pot}` : `EACH GETS $${state.pot / 2}`;
+
+    setTimeout(() => {
+      document.getElementById('controls').style.display = 'none';
+      document.getElementById('resultCard').classList.add('show');
+      // make sure newBet button is visible
+      document.getElementById('newBetBtn').style.display = 'inline-block';
+      // start DoN countdown only if there was a winner (DoN doesn't make sense on a tie)
+      if (state.lastWinner) {
+        startDonCountdown();
+      } else {
+        document.getElementById('donBtn').style.display = 'none';
+        document.getElementById('donTimer').textContent = '';
+      }
+    }, 1500);
+  }
+
+  function startDonCountdown() {
+    state.donCountdown = 15;
+    document.getElementById('donBtn').style.display = 'inline-block';
+    document.getElementById('donBtn').disabled = false;
+    document.getElementById('donTimer').textContent = `// ${state.donCountdown}S TO DECIDE //`;
+    state.donTimer = setInterval(() => {
+      state.donCountdown--;
+      document.getElementById('donTimer').textContent = `// ${state.donCountdown}S TO DECIDE //`;
+      if (state.donCountdown <= 0) {
+        clearInterval(state.donTimer);
+        walkAway();
+      }
+    }, 1000);
+  }
+
+  function doubleOrNothing() {
+    clearInterval(state.donTimer);
+    document.getElementById('donTimer').textContent = '';
+    document.getElementById('donBtn').disabled = true;
+
+    // double the pot - both players effectively re-ante for double the stakes
+    state.pot *= 2;
+    state.round++;
+
+    addLog(`>> DOUBLE OR NOTHING // POT NOW $${state.pot} // NEW HAND <<`, 'system');
+
+    // hide result card, show controls again briefly during transition
+    document.getElementById('resultCard').classList.remove('show');
+
+    // small delay so player can absorb the pot increase before next round starts
+    setTimeout(() => {
+      startRound();
+    }, 600);
+  }
+
+  function newBet() {
+    clearInterval(state.donTimer);
+    document.getElementById('donTimer').textContent = '';
+    document.getElementById('donBtn').style.display = 'inline-block';
+
+    // pocket the winnings, reset to base ante for fresh round
+    const cashedAmount = state.pot;
+    const cashedBy = state.lastWinner === 'a' ? 'CRIMSON' : state.lastWinner === 'b' ? 'VIOLET' : 'BOTH';
+    addLog(`>> ${cashedBy} BANKED $${cashedAmount} // NEW BET AT $${ANTE * 2} <<`, 'system');
+
+    state.pot = ANTE * 2;
+    state.round = 1;
+    document.getElementById('roundNum').textContent = '1';
+    document.getElementById('potDisplay').textContent = '$' + state.pot;
+
+    // hide result card
+    document.getElementById('resultCard').classList.remove('show');
+
+    // brief delay then fresh round
+    setTimeout(() => {
+      startRound();
+    }, 600);
+  }
+
+  function walkAway() {
+    clearInterval(state.donTimer);
+    document.getElementById('donTimer').textContent = '';
+    document.getElementById('donBtn').style.display = 'none';
+    document.getElementById('resetBtn').disabled = false;
+    addLog(`>> ${state.lastWinner === 'a' ? 'CRIMSON' : state.lastWinner === 'b' ? 'VIOLET' : 'BOTH'} WALKED // $${state.pot} CASHED <<`, 'system');
+  }
+
+  function reset() {
+    clearInterval(state.donTimer);
+    state = {
+      handA: [],
+      handB: [],
+      revealed: 0,
+      pot: 0,
+      round: 1,
+      running: false,
+      donAvailable: false,
+      donTimer: null,
+      donCountdown: 0,
+      lastWinner: null
+    };
+    document.getElementById('log').innerHTML = '';
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('controls').style.display = 'flex';
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('resetBtn').disabled = true;
+    document.getElementById('handA').classList.remove('show');
+    document.getElementById('handB').classList.remove('show');
+    document.getElementById('potDisplay').textContent = '$0';
+    document.getElementById('roundNum').textContent = '1';
+    document.getElementById('revealCount').textContent = '0 / 5';
+    renderHands();
+  }
+
+  // === LOGGING ===
+  function addLog(msg, type) {
+    const log = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry log-' + type;
+    entry.textContent = msg;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // === EVENT BINDINGS ===
+  document.getElementById('startBtn').addEventListener('click', startRound);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  document.getElementById('donBtn').addEventListener('click', doubleOrNothing);
+  document.getElementById('newBetBtn').addEventListener('click', newBet);
+
+  // init
+  renderHands();
+</script>
+</body>
+</html>
